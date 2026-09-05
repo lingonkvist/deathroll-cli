@@ -32,7 +32,6 @@ console.log("")
 printChat("emote", "Bran seizes your hand and shakes it firmly.")
 printChat("whisper", `${human.name}! Aye, good to meet ye.`)
 
-
 await rl.question("[Enter to continue]")
 console.log("")
 
@@ -47,9 +46,9 @@ const decision = await promptUntilValid(
 
 console.log("")
 
-if (decision === "y") {
+if (decision.toLowerCase() === "y") {
   printChat("emote", "Bran grins wide.")
-  printChat("whisper", "Right then. High roll starts, standard rules. On three. One, two...")
+  printChat("whisper", "Right then. Standard rules. You start.")
 
   let currentMax: number = 1000
   let currentPlayer: Player = human
@@ -60,21 +59,33 @@ if (decision === "y") {
     if (currentPlayer === human) {
       await rl.question("[Enter to roll]")
       console.log("")
-
       score = roll(currentMax)
       printChat("system", `${human.name} rolls ${score}`)
+      await sleep(500)
     } else {
       score = roll(currentMax)
       printChat("system", `${cpu.name} rolls ${score}`)
+      await sleep(500)
     }
 
     if (score > 1) {
       currentMax = score
       currentPlayer = currentPlayer === human ? cpu : human
     } else {
-      console.log(`You ${currentPlayer.name === human.name? "lost" : "won"}!`)
+      console.log(`You ${currentPlayer.name === human.name ? "lost..." : "won!"}`)
+      await sleep(1000)
       break
     }
+  }
+
+  console.log("")
+
+  if (currentPlayer === human) {
+    printChat("emote", "Bran chuckles and sweeps up the gold.")
+    printChat("whisper", "Ah, don't look so grim. The dice are fickle. Could've gone either way.")
+  } else {
+    printChat("emote", "Bran stares at the dice for a long moment, then lets out a slow breath.")
+    printChat("whisper", "Aye. Aye, that's fair.")
   }
 } else {
   printChat("whisper", "Suit yerself. More gold for the next fool.")
@@ -84,7 +95,7 @@ if (decision === "y") {
 rl.close()
 
 // --- Helper functions ---
-async function printChat(channel: ChatChannel, message: string) {
+function printChat(channel: ChatChannel, message: string) {
   console.log(chalk.hex(COLORS[channel])(message))
 }
 
@@ -100,4 +111,8 @@ async function promptUntilValid(prompt: string, isValid: (answer: string) => boo
 
 function roll(maxRoll: number) {
   return randomInt(1, maxRoll + 1)
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
