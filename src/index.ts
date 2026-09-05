@@ -11,16 +11,15 @@ type ChatChannel = "narration" | "emote" | "whisper" | "system"
 const cpu: Player = { name: "Bran Ironbrew", kind: "cpu" }
 const rl = createInterface({ input, output })
 
+printChat("narration", "You are with your guild in Molten Core.")
 printChat("narration", "The raid leader calls a five minute break. Half the raid vanishes to restock on reagents; the other half are AFK.")
-
-await rl.question("[Enter to continue]")
-console.log("")
+await rl.question("")
 
 printChat("narration", "A stout dwarf with a thick braided beard stops in front of you, thumbs hooked in his belt.")
 printChat("whisper", `Heya! Name's ${cpu.name}. Don't think we've been properly introduced. What do they call ye?`)
 
 const name = await promptUntilValid(
-  "Your name: ",
+  "My name is: ",
   (answer) => answer.length > 0,
   "Didn't catch that. Yer name?"
 )
@@ -31,9 +30,7 @@ console.log("")
 
 printChat("emote", "Bran seizes your hand and shakes it firmly.")
 printChat("whisper", `${human.name}! Aye, good to meet ye.`)
-
-await rl.question("[Enter to continue]")
-console.log("")
+await rl.question("")
 
 printChat("emote", "Bran digs into a pouch at his belt and produces a small, worn set of dice, rolling them between his fingers.")
 printChat("whisper", `Break's near five minutes. Long enough for a proper deathroll, if ye've the stomach for it. Thousand gold, winner takes all. What d'ye say, ${human.name}?`)
@@ -57,15 +54,15 @@ if (decision.toLowerCase() === "y") {
     let score
 
     if (currentPlayer === human) {
+      if(currentMax < 1000) await sleep(500)
       await rl.question("[Enter to roll]")
       console.log("")
       score = roll(currentMax)
       printChat("system", `${human.name} rolls ${score}`)
-      await sleep(500)
     } else {
+      await sleep(500)
       score = roll(currentMax)
       printChat("system", `${cpu.name} rolls ${score}`)
-      await sleep(500)
     }
 
     if (score > 1) {
@@ -73,11 +70,11 @@ if (decision.toLowerCase() === "y") {
       currentPlayer = currentPlayer === human ? cpu : human
     } else {
       console.log(`You ${currentPlayer.name === human.name ? "lost..." : "won!"}`)
-      await sleep(1000)
       break
     }
   }
 
+  await rl.question("")
   console.log("")
 
   if (currentPlayer === human) {
