@@ -1,11 +1,12 @@
 import { createInterface } from "node:readline/promises"
 import { stdin as input, stdout as output } from "node:process"
+import { randomInt } from "node:crypto"
 import chalk from "chalk"
 
-const COLORS = { narration: "#FFFF9F", emote: "#FF7F3F", whisper: "#FF7FFF" }
+const COLORS = { narration: "#AAAAAA", emote: "#FF7F3F", whisper: "#FF7FFF", system: "#FFFF00" }
 
 type Player = { name: string; kind: "human" | "cpu" }
-type ChatChannel = "narration" | "emote" | "whisper"
+type ChatChannel = "narration" | "emote" | "whisper" | "system"
 
 const cpu: Player = { name: "Bran Ironbrew", kind: "cpu" }
 const rl = createInterface({ input, output })
@@ -39,7 +40,7 @@ printChat("emote", "Bran digs into a pouch at his belt and produces a small, wor
 printChat("whisper", `Break's near five minutes. Long enough for a proper deathroll, if ye've the stomach for it. Thousand gold, winner takes all. What d'ye say, ${human.name}?`)
 
 const decision = await promptUntilValid(
-  "Death roll? (Y/N): ",
+  "Death roll the dwarf? (Y/N): ",
   (answer) => ["y", "n"].includes(answer.toLowerCase()),
   "Simple question, friend. Yes or no?"
 )
@@ -49,12 +50,34 @@ console.log("")
 if (decision === "y") {
   printChat("emote", "Bran grins wide.")
   printChat("whisper", "Right then. High roll starts, standard rules. On three. One, two...")
-} else if (decision === "n") {
-  // Emote.
-  printChat("emote", "Bran shrugs, unbothered, and pockets the dice.")
-  // Whisper.
+
+  let currentMax: number = 1000
+  let currentPlayer: Player = human
+
+  while (true) {
+    let score
+
+    if (currentPlayer === human) {
+      await rl.question("[Enter to roll]")
+      console.log("")
+
+      score = roll(currentMax)
+      printChat("system", `${human.name} rolls ${score}`)
+    } else {
+      score = roll(currentMax)
+      printChat("system", `${cpu.name} rolls ${score}`)
+    }
+
+    if (score > 1) {
+      currentMax = score
+      currentPlayer = currentPlayer === human ? cpu : human
+    } else {
+      console.log(`You ${currentPlayer.name === human.name? "lost" : "won"}!`)
+      break
+    }
+  }
+} else {
   printChat("whisper", "Suit yerself. More gold for the next fool.")
-  // Emote.
   printChat("emote", "He claps you on the shoulder hard enough to rattle your teeth and wanders off to find another mark.")
 }
 
@@ -73,4 +96,8 @@ async function promptUntilValid(prompt: string, isValid: (answer: string) => boo
     answer = (await rl.question(prompt)).trim()
   }
   return answer
+}
+
+function roll(maxRoll: number) {
+  return randomInt(1, maxRoll + 1)
 }
